@@ -16,8 +16,8 @@ import {
 import { Caption, TableComposable, Tbody, Th, Thead, Tr } from '@patternfly/react-table';
 import { FormEvent, useState } from 'react';
 import { createUseStyles } from 'react-jss';
-import { useQuery } from 'react-query';
-import { choosableColors, Color, Customer, getCustomers } from 'src/api/CustomerApi';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
+import { choosableColors, Color, Customer, getCustomers, postNewCustomer } from 'src/api/CustomerApi';
 import { ColoredTd } from 'src/components/ColoredTd';
 import Loader from 'src/components/Loader';
 import { SnazzyButton } from 'src/components/SnazzyButton';
@@ -35,7 +35,7 @@ export default () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newUser, setNewUser] = useState<Partial<Customer>>({ isCool: false });
   const [selectToggle, setSelectToggle] = useState(false);
-  // const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
   // Queries
   const { isLoading, data } = useQuery(
@@ -44,8 +44,28 @@ export default () => {
     // TODO: Stretch - Use the options object to handle errors.
   );
 
+  const newUserMutation = useMutation(postNewCustomer, {
+    onMutate: async newCustomer => {
+      await queryClient.cancelQueries('customers');
+      const previousCustomers = queryClient.getQueryData('customers');
+      queryClient.setQueryData('customers', old => [...old as Customer[], newCustomer]);
+      return { previousCustomers };
+    },
+    onError: (err, newCustomer, context) => {
+      queryClient.setQueryData('todos', context?.previousCustomers)
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['customers'] })
+  })
+
   const onSubmit = (e: FormEvent<Element>) => {
     e.preventDefault();
+    newUserMutation.mutate({
+      name: 'John Doe',
+      color: 'red',
+      age: 0,
+      isCool: false,
+      ...newUser
+    });
     setNewUser({ isCool: false });
     setIsModalOpen(false);
   };
