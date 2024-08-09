@@ -31,6 +31,12 @@ export const addNewCustomer = (customer: Customer) => {
   return customersSetter(customers);
 };
 
+export const removeCustomer = (index: number) => {
+  const customers = customersGetter();
+  const newCustomers = [...customers.slice(0, index), ...customers.slice(index + 1 > customers.length ? customers.length : index + 1)];
+  return customersSetter(newCustomers)
+}
+
 // Super real API calls
 export const getCustomers = () => callAPI(customersGetter);
 
@@ -38,3 +44,5 @@ export const postCustomers = (customers: Array<Customer> | undefined) => () =>
   callAPI(() => customersSetter(customers));
 
 export const postNewCustomer = (customer: Customer) => callAPI(() => addNewCustomer(customer));
+
+export const deleteCustomer = (index: number) => callAPI(() => removeCustomer(index))
