@@ -6,12 +6,36 @@ import { ColoredTd } from 'src/components/ColoredTd';
 import Loader from 'src/components/Loader';
 import { useAppContext } from 'src/middleware';
 
-import { Button, Grid, GridItem, ToggleGroup, ToggleGroupItem } from '@patternfly/react-core';
+import { Button, Grid, GridItem } from '@patternfly/react-core';
 import {
     ActionsColumn, Caption, IAction, TableComposable, Tbody, Td, Th, Thead, Tr
 } from '@patternfly/react-table';
+import { createUseStyles } from 'react-jss';
+
+const useStyles = createUseStyles({
+  darkModeTable: {
+    '--pf-c-table--BackgroundColor': [['#333333'], '!important'],
+    '--pf-c-table--BorderColor': [['#737373'], '!important'],
+    '--pf-c-table--cell--Color': [['#e2e8f0'], '!important'],
+    '& .pf-c-dropdown__toggle.pf-m-plain:hover, .pf-c-dropdown__toggle.pf-m-plain:focus, .pf-c-dropdown__toggle.pf-m-plain:active, .pf-c-dropdown__toggle.pf-m-plain.pf-m-active, .pf-m-expanded > .pf-c-dropdown__toggle.pf-m-plain': {
+      '--pf-c-dropdown__toggle--m-plain--Color': [['#e5e5e5'], '!important'],
+      '--pf-c-dropdown--m-plain__toggle-icon--Color': [['#e5e5e5'], '!important'],
+    },
+    '& .pf-c-dropdown__menu': {
+      backgroundColor: [['#404040'], '!important'],
+    },
+    '& .pf-c-dropdown__menu-item': {
+      color: [['#e2e8f0'], '!important'],
+    },
+    '& .pf-c-dropdown__menu-wrapper:hover, .pf-c-dropdown__menu-item:hover': {
+        backgroundColor: [['#525252'], '!important'],
+    },
+  },
+});
+
 
 export default () => {
+  const classes = useStyles();
   const { setDarkmode, darkmode } = useAppContext();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -67,7 +91,7 @@ export default () => {
         onClose={() => setIsModalOpen(false)}
       />
       <Grid>
-        <TableComposable aria-label='Simple table' variant='compact'>
+        <TableComposable aria-label='Simple table' variant='compact' className={darkmode ? classes.darkModeTable : ''}>
           <Caption>Here is a list of your customers:</Caption>
           <Thead>
             <Tr>

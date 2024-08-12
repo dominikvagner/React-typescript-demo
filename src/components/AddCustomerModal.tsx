@@ -9,11 +9,54 @@ import {
 } from '@patternfly/react-core';
 
 import { SnazzyButton } from './SnazzyButton';
+import { useAppContext } from 'src/middleware';
 
 
 const useStyles = createUseStyles({
   inlineText: {
     display: 'block',
+  },
+  darkModeModal: {
+    color: [['#e2e8f0'], '!important'],
+    '--pf-c-modal-box--BackgroundColor': [['#404040'], '!important'],
+    '--pf-c-check__label--Color': [['#e2e8f0'], '!important'],
+    '& .pf-c-button.pf-m-plain:hover': {
+      '--pf-c-button--m-plain--Color': [['#e5e5e5'], '!important'],
+    },
+    '& .pf-c-button.pf-m-plain:focus': {
+      '--pf-c-button--m-plain--Color': [['#e5e5e5'], '!important'],
+    },
+    '& .pf-c-check__label': {
+      color: [['#e2e8f0'], '!important'],
+    },
+    '& .pf-c-select__toggle': {
+      color: [['#e2e8f0'], '!important'],
+      backgroundColor: [['#404040'], '!important'],
+      borderWidth: 0,
+      borderBottom: '2px solid #737373 !important',
+      '&:hover': {
+        border: 'none'
+      },
+      '&:before': {
+        border: 'none',
+      }
+    },
+    '& .pf-c-select__menu': {
+      backgroundColor: [['#404040'], '!important'],
+    },
+    '& .pf-c-select__menu-wrapper:hover, .pf-c-select__menu-item:hover': {
+        backgroundColor: [['#525252'], '!important'],
+    },
+    '& .pf-c-form-control': {
+      color: [['#e2e8f0'], '!important'],
+      backgroundColor: [['#404040'], '!important'],
+      borderWidth: 0,
+      borderBottom: '2px solid #525252 !important',
+      '&:focus': {
+        outline: 'none',
+        border: '1px solid #d4d4d4 !important',
+      }
+    },
   },
 });
 
@@ -24,6 +67,7 @@ type AddCustomerModalProps = {
 
 export const AddCustomerModal = ({ isOpen, onClose }: AddCustomerModalProps) => {
   const classes = useStyles();
+  const { darkmode } = useAppContext();
   const [newUser, setNewUser] = useState<Partial<Customer>>({ isCool: false });
   const [selectToggle, setSelectToggle] = useState(false);
   const queryClient = useQueryClient();
@@ -60,6 +104,7 @@ export const AddCustomerModal = ({ isOpen, onClose }: AddCustomerModalProps) => 
       title='Add Customer'
       isOpen={isOpen}
       onClose={onClose}
+      className={darkmode ? classes.darkModeModal : ''}
     >
       <Form onSubmit={onSubmit}>
         <Grid className={classes.inlineText}>
