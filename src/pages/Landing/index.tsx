@@ -41,11 +41,9 @@ export default () => {
   const queryClient = useQueryClient();
 
   // Queries
-  const { isLoading, data } = useQuery(
-    'customers',
-    getCustomers,
-    // TODO: Stretch - Use the options object to handle errors.
-  );
+  const { isLoading, isError, data, error } = useQuery('customers', getCustomers, {
+    retry: 5
+  });
 
   const deleteCustomerMutation = useMutation(deleteCustomer, {
     onMutate: async index => {
@@ -74,6 +72,11 @@ export default () => {
   const columnHeaders = ['Name', 'Age', 'Is Cool'];
 
   if (isLoading) return <Loader />;
+
+  if (isError) {
+    return <span color='black'>Error: {error} Please <a href=".">reload</a> this site!</span>
+  }
+
   return (
     <Grid>
       <GridItem sm={6}>
