@@ -80,7 +80,7 @@ export const AddCustomerModal = ({ isOpen, onClose }: AddCustomerModalProps) => 
       return { previousCustomers };
     },
     onError: (err, newCustomer, context) => {
-      queryClient.setQueryData('todos', context?.previousCustomers)
+      queryClient.setQueryData('customers', context?.previousCustomers)
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['customers'] })
   })
