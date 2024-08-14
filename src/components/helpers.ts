@@ -1,7 +1,7 @@
 export const snazzyButtonStyle = {
-  border: '1px solid currentColor',
+  border: '1px solid #2B9AF3',
   borderRadius: '5px',
-  color: '#0066CC!important',
+  color: '#2B9AF3!important',
   backgroundColor: 'transparent!important',
   overflow: 'hidden',
   position: 'relative',

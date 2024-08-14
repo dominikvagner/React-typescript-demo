@@ -14,15 +14,15 @@ import { createUseStyles } from 'react-jss';
 
 const useStyles = createUseStyles({
   darkModeTable: {
-    '--pf-c-table--BackgroundColor': [['#333333'], '!important'],
-    '--pf-c-table--BorderColor': [['#737373'], '!important'],
+    '--pf-c-table--BackgroundColor': [['#000'], '!important'],
+    '--pf-c-table--BorderColor': [['#7e7c7c'], '!important'],
     '--pf-c-table--cell--Color': [['#e2e8f0'], '!important'],
     '& .pf-c-dropdown__toggle.pf-m-plain:hover, .pf-c-dropdown__toggle.pf-m-plain:focus, .pf-c-dropdown__toggle.pf-m-plain:active, .pf-c-dropdown__toggle.pf-m-plain.pf-m-active, .pf-m-expanded > .pf-c-dropdown__toggle.pf-m-plain': {
       '--pf-c-dropdown__toggle--m-plain--Color': [['#e5e5e5'], '!important'],
       '--pf-c-dropdown--m-plain__toggle-icon--Color': [['#e5e5e5'], '!important'],
     },
     '& .pf-c-dropdown__menu': {
-      backgroundColor: [['#404040'], '!important'],
+      backgroundColor: [['#151515'], '!important'],
     },
     '& .pf-c-dropdown__menu-item': {
       color: [['#e2e8f0'], '!important'],
@@ -30,7 +30,14 @@ const useStyles = createUseStyles({
     '& .pf-c-dropdown__menu-wrapper:hover, .pf-c-dropdown__menu-item:hover': {
         backgroundColor: [['#525252'], '!important'],
     },
+    '& caption': {
+      color: [['#D2D2D2'], '!important']
+    }
   },
+  darkModeButton: {
+    color: [['#2B9AF3'], '!important'],
+    borderColor: [['#2B9AF3'], '!important'],
+  }
 });
 
 
@@ -80,12 +87,12 @@ export default () => {
   return (
     <Grid>
       <GridItem sm={6}>
-        <Button onClick={() => setDarkmode(!darkmode)} variant='secondary'>
+        <Button onClick={() => setDarkmode(!darkmode)} variant='secondary' className={darkmode ? classes.darkModeButton : ''}>
           {darkmode ? 'LightMode' : 'DarkMode'}
         </Button>
       </GridItem>
       <GridItem sm={6}>
-        <Button onClick={() => setIsModalOpen(true)} variant='secondary'>
+        <Button onClick={() => setIsModalOpen(true)} variant='secondary' className={darkmode ? classes.darkModeButton : ''}>
           Add New Customer
         </Button>
       </GridItem>
@@ -95,7 +102,7 @@ export default () => {
       />
       <Grid>
         <TableComposable aria-label='Simple table' variant='compact' className={darkmode ? classes.darkModeTable : ''}>
-          <Caption>Here is a list of your customers:</Caption>
+          <Caption >Here is a list of your customers:</Caption>
           <Thead>
             <Tr>
               {columnHeaders.map((columnHeader) => (

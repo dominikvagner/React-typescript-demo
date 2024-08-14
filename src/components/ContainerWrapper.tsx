@@ -13,7 +13,7 @@ const useStyles =
     },
     horizontalAlignWithDarkmode: {
       composes: '$horizontalAlign',
-      background: '#333',
+      background: '#000',
       color: 'white',
     },
     verticalAlign: {

@@ -2,15 +2,15 @@ import { FormEvent, useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useMutation, useQueryClient } from 'react-query';
 import { choosableColors, Color, Customer, postNewCustomer } from 'src/api/CustomerApi';
+import { useAppContext } from 'src/middleware';
 
 import {
-  Checkbox, Form, Grid, Modal, ModalVariant, Select, SelectDirection, SelectOption, SelectVariant,
-  Text, TextInput
+    Checkbox, Form, Grid, Modal, ModalVariant, Select, SelectDirection, SelectOption, SelectVariant,
+    Text, TextInput
 } from '@patternfly/react-core';
 
 import { SnazzyButton } from './SnazzyButton';
-import { useAppContext } from 'src/middleware';
-
+import { getColorValue } from './ColoredTd';
 
 const useStyles = createUseStyles({
   inlineText: {
@@ -18,7 +18,7 @@ const useStyles = createUseStyles({
   },
   darkModeModal: {
     color: [['#e2e8f0'], '!important'],
-    '--pf-c-modal-box--BackgroundColor': [['#404040'], '!important'],
+    '--pf-c-modal-box--BackgroundColor': [['#101010'], '!important'],
     '--pf-c-check__label--Color': [['#e2e8f0'], '!important'],
     '& .pf-c-button.pf-m-plain:hover': {
       '--pf-c-button--m-plain--Color': [['#e5e5e5'], '!important'],
@@ -31,7 +31,7 @@ const useStyles = createUseStyles({
     },
     '& .pf-c-select__toggle': {
       color: [['#e2e8f0'], '!important'],
-      backgroundColor: [['#404040'], '!important'],
+      backgroundColor: [['#151515'], '!important'],
       borderWidth: 0,
       borderBottom: '2px solid #737373 !important',
       '&:hover': {
@@ -42,14 +42,14 @@ const useStyles = createUseStyles({
       }
     },
     '& .pf-c-select__menu': {
-      backgroundColor: [['#404040'], '!important'],
+      backgroundColor: [['#151515'], '!important'],
     },
     '& .pf-c-select__menu-wrapper:hover, .pf-c-select__menu-item:hover': {
         backgroundColor: [['#525252'], '!important'],
     },
     '& .pf-c-form-control': {
       color: [['#e2e8f0'], '!important'],
-      backgroundColor: [['#404040'], '!important'],
+      backgroundColor: [['#151515'], '!important'],
       borderWidth: 0,
       borderBottom: '2px solid #525252 !important',
       '&:focus': {
@@ -88,11 +88,10 @@ export const AddCustomerModal = ({ isOpen, onClose }: AddCustomerModalProps) => 
   const onSubmit = (e: FormEvent<Element>) => {
     e.preventDefault();
     newUserMutation.mutate({
-      name: 'John Doe',
-      color: 'red',
-      age: 0,
-      isCool: false,
-      ...newUser
+      name: newUser.name || 'John Doe',
+      color: newUser.color || 'red',
+      age: newUser.age || 10,
+      isCool: newUser.isCool || false,
     });
     setNewUser({ isCool: false });
     onClose();
@@ -111,7 +110,7 @@ export const AddCustomerModal = ({ isOpen, onClose }: AddCustomerModalProps) => 
           <Text>Name</Text>
           <TextInput
             onChange={(value) => setNewUser({ ...newUser, name: value })}
-            value={newUser.name || ''}
+            value={newUser.name || 'John Doe'}
             id='name'
             type='text'
           />
@@ -120,7 +119,7 @@ export const AddCustomerModal = ({ isOpen, onClose }: AddCustomerModalProps) => 
           <Text>Age</Text>
           <TextInput
             onChange={(value) => setNewUser({ ...newUser, age: Number(value) })}
-            value={newUser.age || ''}
+            value={newUser.age || '10'}
             id='age'
             type='number'
           />
@@ -143,7 +142,7 @@ export const AddCustomerModal = ({ isOpen, onClose }: AddCustomerModalProps) => 
             direction={SelectDirection.up}
           >
             {choosableColors.map((color: string, index) => (
-              <SelectOption style={{ color }} key={index} value={color} />
+              <SelectOption style={{ 'color': getColorValue(color as Color, darkmode) }} key={index} value={color} />
             ))}
           </Select>
         </Grid>
