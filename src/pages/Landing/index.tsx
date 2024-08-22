@@ -1,149 +1,136 @@
-import {
-  Button,
-  Checkbox,
-  Form,
-  Grid,
-  GridItem,
-  Modal,
-  ModalVariant,
-  Select,
-  SelectDirection,
-  SelectOption,
-  SelectVariant,
-  Text,
-  TextInput,
-} from '@patternfly/react-core';
-import { Caption, TableComposable, Tbody, Th, Thead, Tr } from '@patternfly/react-table';
-import { FormEvent, useState } from 'react';
-import { createUseStyles } from 'react-jss';
-import { useQuery } from 'react-query';
-import { choosableColors, Customer, getCustomers } from 'src/api/CustomerApi';
+import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
+import { Customer, deleteCustomer, getCustomers } from 'src/api/CustomerApi';
+import { AddCustomerModal } from 'src/components/AddCustomerModal';
 import { ColoredTd } from 'src/components/ColoredTd';
 import Loader from 'src/components/Loader';
 import { useAppContext } from 'src/middleware';
 
+import { Button, Grid, GridItem } from '@patternfly/react-core';
+import {
+    ActionsColumn, Caption, IAction, TableComposable, Tbody, Td, Th, Thead, Tr
+} from '@patternfly/react-table';
+import { createUseStyles } from 'react-jss';
+
 const useStyles = createUseStyles({
-  inlineText: {
-    display: 'block',
+  darkModeTable: {
+    '--pf-c-table--BackgroundColor': [['#000'], '!important'],
+    '--pf-c-table--BorderColor': [['#7e7c7c'], '!important'],
+    '--pf-c-table--cell--Color': [['#e2e8f0'], '!important'],
+    '& .pf-c-dropdown__toggle.pf-m-plain:hover, .pf-c-dropdown__toggle.pf-m-plain:focus, .pf-c-dropdown__toggle.pf-m-plain:active, .pf-c-dropdown__toggle.pf-m-plain.pf-m-active, .pf-m-expanded > .pf-c-dropdown__toggle.pf-m-plain': {
+      '--pf-c-dropdown__toggle--m-plain--Color': [['#e5e5e5'], '!important'],
+      '--pf-c-dropdown--m-plain__toggle-icon--Color': [['#e5e5e5'], '!important'],
+    },
+    '& .pf-c-dropdown__menu': {
+      backgroundColor: [['#151515'], '!important'],
+    },
+    '& .pf-c-dropdown__menu-item': {
+      color: [['#e2e8f0'], '!important'],
+    },
+    '& .pf-c-dropdown__menu-wrapper:hover, .pf-c-dropdown__menu-item:hover': {
+        backgroundColor: [['#525252'], '!important'],
+    },
+    '& caption': {
+      color: [['#D2D2D2'], '!important']
+    }
   },
+  darkModeButton: {
+    color: [['#2B9AF3'], '!important'],
+    borderColor: [['#2B9AF3'], '!important'],
+  }
 });
+
 
 export default () => {
   const classes = useStyles();
   const { setDarkmode, darkmode } = useAppContext();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newUser, setNewUser] = useState<Partial<Customer>>({ isCool: false });
-  const [selectToggle, setSelectToggle] = useState(false);
-  // const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
   // Queries
-  const { isLoading, data } = useQuery(
-    'customers',
-    getCustomers,
-    // TODO: Stretch - Use the options object to handle errors.
-  );
+  const { isLoading, isError, data, error } = useQuery('customers', getCustomers, {
+    retry: 5
+  });
 
-  const onSubmit = (e: FormEvent<Element>) => {
-    e.preventDefault();
-    setNewUser({ isCool: false });
-    setIsModalOpen(false);
-  };
+  const deleteCustomerMutation = useMutation(deleteCustomer, {
+    onMutate: async index => {
+      await queryClient.cancelQueries('customers');
+      const previousCustomers = queryClient.getQueryData('customers');
+      queryClient.setQueryData('customers', old => {
+        const customers = [...old as Customer[]];
+        const newCustomers = [...customers.slice(0, index), ...customers.slice(index + 1 > customers.length ? customers.length : index + 1)];
+        return newCustomers;
+      });
+      return { previousCustomers };
+    },
+    onError: (err, newCustomer, context) => {
+      queryClient.setQueryData('customers', context?.previousCustomers)
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['customers'] })
+  })
+
+  const defaultActions = (index: number): IAction[] => [
+    {
+      title: 'Delete',
+      onClick: () => deleteCustomerMutation.mutate(index),
+    },
+  ];
 
   const columnHeaders = ['Name', 'Age', 'Is Cool'];
 
   if (isLoading) return <Loader />;
+
+  if (isError) {
+    return <span color='black'>Error: {error} Please <a href=".">reload</a> this site!</span>
+  }
+
   return (
     <Grid>
       <GridItem sm={6}>
-        <Button onClick={() => setDarkmode(!darkmode)} variant='secondary'>
+        <Button onClick={() => setDarkmode(!darkmode)} variant='secondary' className={darkmode ? classes.darkModeButton : ''}>
           {darkmode ? 'LightMode' : 'DarkMode'}
         </Button>
       </GridItem>
       <GridItem sm={6}>
-        <Button onClick={() => setIsModalOpen(true)} variant='secondary'>
+        <Button onClick={() => setIsModalOpen(true)} variant='secondary' className={darkmode ? classes.darkModeButton : ''}>
           Add New Customer
         </Button>
       </GridItem>
-      <Modal
-        variant={ModalVariant.small}
-        title='Add Customer'
+      <AddCustomerModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-      >
-        <Form onSubmit={onSubmit}>
-          <Grid className={classes.inlineText}>
-            <Text>Name</Text>
-            <TextInput
-              onChange={(value) => setNewUser({ ...newUser, name: value })}
-              value={newUser.name || ''}
-              id='name'
-              type='text'
-            />
-          </Grid>
-          <Grid className={classes.inlineText}>
-            <Text>Age</Text>
-            <TextInput
-              onChange={(value) => setNewUser({ ...newUser, age: Number(value) })}
-              value={newUser.age || ''}
-              id='age'
-              type='number'
-            />
-          </Grid>
-          <Grid className={classes.inlineText}>
-            <Text>Color</Text>
-            <Select
-              onToggle={() => setSelectToggle(!selectToggle)}
-              isOpen={selectToggle}
-              onSelect={(_e, value) => {
-                if (typeof value === 'string')
-                  // TODO: Fix this when creating the new Color type
-                  setNewUser({ ...newUser, color: value });
-                setSelectToggle(false);
-              }}
-              id='color'
-              variant={SelectVariant.single}
-              placeholderText='Select a color'
-              selections={newUser?.color}
-              direction={SelectDirection.up}
-            >
-              {choosableColors.map((color: string, index) => (
-                <SelectOption style={{ color }} key={index} value={color} />
-              ))}
-            </Select>
-          </Grid>
-          <Checkbox
-            label='Is this person cool?'
-            id='isCool'
-            onChange={(value) => setNewUser({ ...newUser, isCool: value })}
-            isChecked={newUser.isCool}
-          />
-          <Button type='submit'>Submit</Button>
-        </Form>
-      </Modal>
+      />
       <Grid>
-        <TableComposable aria-label='Simple table' variant='compact'>
-          <Caption>Here is a list of your customers:</Caption>
+        <TableComposable aria-label='Simple table' variant='compact' className={darkmode ? classes.darkModeTable : ''}>
+          <Caption >Here is a list of your customers:</Caption>
           <Thead>
             <Tr>
               {columnHeaders.map((columnHeader) => (
                 <Th key={columnHeader}>{columnHeader}</Th>
               ))}
+              <Td></Td>
             </Tr>
           </Thead>
           <Tbody>
-            {data?.map(({ name, age, color, isCool }, key: number) => (
-              <Tr key={name + key}>
-                <ColoredTd color={color} dataLabel='name'>
-                  {name}
-                </ColoredTd>
-                <ColoredTd color={color} dataLabel='age'>
-                  {age}
-                </ColoredTd>
-                <ColoredTd color={color} dataLabel='isCool'>
-                  {isCool ? 'Yup' : 'Totally Not!'}
-                </ColoredTd>
-              </Tr>
-            ))}
+            {data?.map(({ name, age, color, isCool }, key: number) => {
+              const rowActions: IAction[] = defaultActions(key)
+              return (
+                <Tr key={name + key}>
+                  <ColoredTd color={color} dataLabel='name'>
+                    {name}
+                  </ColoredTd>
+                  <ColoredTd color={color} dataLabel='age'>
+                    {age}
+                  </ColoredTd>
+                  <ColoredTd color={color} dataLabel='isCool'>
+                    {isCool ? 'Yup' : 'Totally Not!'}
+                  </ColoredTd>
+                  <Td isActionCell>
+                    <ActionsColumn items={rowActions} />
+                  </Td>
+                </Tr>
+              )
+            })}
           </Tbody>
         </TableComposable>
       </Grid>
